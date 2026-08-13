@@ -1,542 +1,499 @@
--- Streaming Music Player - Fixed Streaming
--- Advanced Monitor + Speaker required
- 
-local speaker = peripheral.find("speaker")
-if not speaker then error("No Speaker found!") end
- 
+-- Streaming Music Player - Multi-Speaker Edition with Seeking
+-- Advanced Monitor + Speaker(s) required
+
+-- Find ALL connected speakers (Wired Modems required for multiple)
+local speakers = { peripheral.find("speaker") }
+if #speakers == 0 then error("No Speakers found!") end
+
 local mon = peripheral.find("monitor")
 if not mon then error("No Advanced Monitor found!") end
- 
+
 term.redirect(mon)
 mon.setTextScale(0.5)
- 
+
 local dfpwm = require("cc.audio.dfpwm")
 local decoder = dfpwm.make_decoder()
- 
+
 -- ========== SONG LIST ==========
- 
 local songs = {
     {
         name = "Akon - Ghetto",
         url = "https://github.com/iChronixz-git/Music/raw/refs/heads/main/1nryuu.dfpwm"
     },
- 
     {
         name = "Post Malone - Wasting Angels ft Kid Laroi",
         url = "https://github.com/202581-sys/Music_Storage/raw/refs/heads/main/Post%20Malone%20-%20Wasting%20Angels%20w.%20The%20Kid%20LAROI%20(Official%20Lyric%20Video)%20%5BLBbHPn-7v1I%5D.dfpwm"
     },
- 
     {
         name = "Queen - Bohemian Rhapsody",
         url = "https://github.com/202581-sys/Music_Storage/raw/refs/heads/main/Queen%20%E2%80%93%20Bohemian%20Rhapsody%20(Official%20Video%20Remastered)%20%5BfJ9rUzIMcZQ%5D.dfpwm"
     },
- 
     {
         name = "Bad Bunny - DtMF",
         url = "https://github.com/iChronixz-git/Music/raw/refs/heads/main/BAD%20BUNNY%20-%20DtMF%20(Visualizer)%20DeB%C3%8D%20TiRAR%20M%C3%A1S%20FOToS.dfpwm"
     },
- 
     {
         name = "XS Project - Bochka, Bass, Kolbaser",
         url = "https://github.com/iChronixz-git/Music/raw/refs/heads/main/XS%20Project%20-%20Bochka,%20Bass,%20Kolbaser%20%5BBass%20Boosted%5D%20(Russian%20Special)%20-%20(256%20Kbps).dfpwm"
     },
-    -- Add more songs here:
-    -- {
-    --     name = "My Favourite Song",
-    --     url = "https://raw.githubusercontent.com/.../song.dfpwm"
-    -- },
+    {
+        name = "Yeat - 2Nite",
+        url = "https://github.com/iChronixz-git/Music/raw/refs/heads/main/2Nite.dfpwm"
+    },
+    {
+        name = "Ayo Teo - Rolex",
+        url = "https://github.com/iChronixz-git/Music/raw/refs/heads/main/Ayo%20Teo%20-%20Rolex%20(Official%20Video).dfpwm"
+    },
+    {
+        name = "Beenie Man ft Ms. Thing - Dude",
+        url = "https://github.com/iChronixz-git/Music/raw/refs/heads/main/Beenie%20Man%20feat.%20Ms.%20Thing%20&%20Shawnna%20-%20Dude%20%5BRemix%5D%20(2004)%20-%20(128%20Kbps).dfpwm"
+    },
+    {
+        name = "Bob Marley & The Wailers - Buffalo Soldier",
+        url = "https://github.com/iChronixz-git/Music/raw/refs/heads/main/Bob%20Marley%20&%20The%20Wailers%20-%20Buffalo%20Soldier%20(Official%20Music%20Video)%20-%20(128%20Kbps).dfpwm"
+    },
+    {
+        name = "Bob Marley - Is this Love",
+        url = "https://github.com/iChronixz-git/Music/raw/refs/heads/main/Bob%20Marley%20-%20Is%20This%20Love%20(Official%20Music%20Video)%20-%20(128%20Kbps).dfpwm"
+    },
+    {
+        name = "Bob Marley - One Love",
+        url = "https://github.com/iChronixz-git/Music/raw/refs/heads/main/Bob%20Marley%20-%20One%20Love%20-%20(128%20Kbps).dfpwm"
+    },
+    {
+        name = "Chaka Demus & Pliers - Murder She Wrote",
+        url = "https://github.com/iChronixz-git/Music/raw/refs/heads/main/Chaka%20Demus,%20Pliers%20-%20Murder%20She%20Wrote%20-%20(128%20Kbps).dfpwm"
+    },
+    {
+        name = "Coolio L.V. - Gangsta's Paradise",
+        url = "https://github.com/iChronixz-git/Music/raw/refs/heads/main/Coolio%20L.V.%20-%20Gangsta%20s%20Paradise.dfpwm"
+    },
+    {
+        name = "Drake & 21 Savage - Rich Flex",
+        url = "https://github.com/iChronixz-git/Music/raw/refs/heads/main/Drake,%2021%20Savage%20-%20Rich%20Flex%20(Audio).dfpwm"
+    },
+    {
+        name = "Fred Again.. & Skepta - Victory Lap",
+        url = "https://github.com/iChronixz-git/Music/raw/refs/heads/main/Fred%20again..%20-%20Victory%20Lap%20(with%20Skepta%20&%20PlaqueBoyMax)%20(Lyrics)%20-%20(192%20Kbps).dfpwm"
+    },
+    {
+        name = "Cris Mj ft floyymenor - Gata Only",
+        url = "https://github.com/iChronixz-git/Music/raw/refs/heads/main/Gata%20Only%20-%20(%20Cris%20Mj%20ft%20floyymenor%20).dfpwm"
+    },
+    {
+        name = "Gyptian - Hold Yuh",
+        url = "https://github.com/iChronixz-git/Music/raw/refs/heads/main/Gyptian%20-%20Hold%20You%20_%20Official%20Music%20Video%20-%20(128%20Kbps).dfpwm"
+    },
+    {
+        name = "Ice Cube - It Was A Good Day",
+        url = "https://github.com/iChronixz-git/Music/raw/refs/heads/main/Ice%20Cube%20-%20It%20Was%20A%20Good%20Day.dfpwm"
+    },
+    {
+        name = "JugJug ft Marlow P - Busy",
+        url = "https://github.com/iChronixz-git/Music/raw/refs/heads/main/JugJug-%20BUSY%20ft.%20Marlow%20P%20(Official%20Video)%20-%20(128%20Kbps).dfpwm"
+    },
+    {
+        name = "Kenzo - Weren't All That",
+        url = "https://github.com/iChronixz-git/Music/raw/refs/heads/main/Kenzo%20-%20Weren't%20All%20That%20(Official%20Music%20Video)%20-%20(128%20Kbps).dfpwm"
+    },
+    {
+        name = "LOVIXX & STOSLIV - Don't Tell Your Dreams",
+        url = "https://github.com/iChronixz-git/Music/raw/refs/heads/main/LOVIXX,%20STOSLIV%20-%20Don%20t%20tell%20your%20dreams%20(Lyrics).dfpwm"
+    },
+    {
+        name = "Notch - Nuttin Nuh Go So",
+        url = "https://github.com/iChronixz-git/Music/raw/refs/heads/main/Notch%20-%20Nuttin%20Nuh%20Go%20So%20(Lyric%20Video)%20-%20(192%20Kbps).dfpwm"
+    },
+    {
+        name = "Ofenbach - Miles Away",
+        url = "https://github.com/iChronixz-git/Music/raw/refs/heads/main/Ofenbach%20-%20Miles%20Away%20(Official%20Audio)%20-%20(256%20Kbps).dfpwm"
+    },
+    {
+        name = "Sleepy Hallow - 2055",
+        url = "https://github.com/iChronixz-git/Music/raw/refs/heads/main/Sleepy%20Hallow%20-%202055%20(Official%20Video)%20-%20(320%20Kbps).dfpwm"
+    },
+    {
+        name = "Levi Heron - The Glen",
+        url = "https://github.com/iChronixz-git/Music/raw/refs/heads/main/THE%20GLEN%20(Levi%20Heron%20Remix)%20-%20(128%20Kbps).dfpwm"
+    },
+    {
+        name = "Metallica - Fade to Black",
+        url = "https://github.com/iChronixz-git/Music/raw/refs/heads/main/Metallica%20-%20Fade%20to%20Black%20-%20(128%20Kbps).dfpwm"
+    },
+    {
+        name = "Lynyrd Skynyrd - Simple Man",
+        url = "https://github.com/iChronixz-git/Music/raw/refs/heads/main/Lynyrd%20Skynyrd%20-%20Simple%20Man%20(Audio)%20-%20(128%20Kbps).dfpwm"
+    },
+--    {
+--        name = "",
+--        url = ""
+--  },
+    {
+        name = "John Denver - Take Me Home, Country Roads",
+        url = "https://github.com/iChronixz-git/Music/raw/refs/heads/main/John%20Denver%20-%20Take%20Me%20Home,%20Country%20Roads%20(Official%20Audio)%20-%20(128%20Kbps).dfpwm"
+    },
+      {
+          name = "Johnny Cash - God's Gonna Cut You Down",
+          url = "https://github.com/iChronixz-git/Music/raw/refs/heads/main/Johnny%20Cash%20-%20God's%20Gonna%20Cut%20You%20Down%20(Official%20Music%20Video)%20-%20(128%20Kbps).dfpwm"
+    },
 }
- 
+
 -- ===============================
- 
 local scroll = 0
 local selected = 1
 local volume = 1.0
- 
+
 -- Playback state
 local playing = false
 local paused = false
 local stopFlag = false
 local currentSong = nil
 local response = nil
- 
--- ========== UI HELPERS ==========
- 
-local function centerWrite(text, y, color)
- 
-    local w = select(1, term.getSize())
- 
-    term.setTextColor(color or colors.white)
- 
-    local x = math.floor((w - #tostring(text)) / 2) + 1
- 
-    if x < 1 then
-        x = 1
+local streamPos = 0 -- Audio position in bytes (6000 bytes = 1 sec)
+
+-- ========== SPEAKER HELPERS ==========
+local function stopAll()
+    for _, spk in ipairs(speakers) do
+        spk.stop()
     end
- 
+end
+
+local function playAudioOnAll(buffer)
+    local allSubmitted = true
+    for _, spk in ipairs(speakers) do
+        local ok = spk.playAudio(buffer)
+        if not ok then
+            allSubmitted = false
+        end
+    end
+    return allSubmitted
+end
+
+-- ========== UI HELPERS ==========
+local function centerWrite(text, y, color)
+    local w = select(1, term.getSize())
+    term.setTextColor(color or colors.white)
+    local x = math.floor((w - #tostring(text)) / 2) + 1
+    if x < 1 then x = 1 end
     term.setCursorPos(x, y)
     term.write(tostring(text))
 end
- 
- 
+
 local function drawButton(x, y, w, text, bg)
- 
     term.setBackgroundColor(bg or colors.gray)
     term.setTextColor(colors.white)
- 
     term.setCursorPos(x, y)
     term.write(string.rep(" ", w))
- 
     local tx = x + math.floor((w - #text) / 2)
- 
     term.setCursorPos(tx, y)
     term.write(text)
 end
- 
- 
+
 local function applyVolume(buffer)
- 
-    if volume == 1.0 then
-        return buffer
-    end
- 
+    if volume == 1.0 then return buffer end
     local new = {}
- 
     for i = 1, #buffer do
- 
         local s = buffer[i] * volume
- 
         if s > 127 then
             s = 127
         elseif s < -128 then
             s = -128
         end
- 
         new[i] = math.floor(s)
     end
- 
     return new
 end
- 
+
+-- Fetch stream HTTP helper
+local function fetchStream(url)
+    http.request({ url = url, binary = true })
+    local timer = os.startTimer(15)
+    while true do
+        local ev, p1, p2 = os.pullEvent()
+        if ev == "http_success" and p1 == url then
+            return p2
+        elseif ev == "http_failure" and p1 == url then
+            return nil
+        elseif ev == "timer" and p1 == timer then
+            return nil
+        end
+    end
+end
+
+-- ========== SEEKING HELPERS ==========
+local function seekForward(seconds)
+    if not response or not playing then return end
+    stopAll()
+    local bytesToSkip = seconds * 6000
+    local skipped = 0
+    while skipped < bytesToSkip do
+        local toRead = math.min(16384, bytesToSkip - skipped)
+        local chunk = response.read(toRead)
+        if not chunk then break end
+        skipped = skipped + #chunk
+    end
+    streamPos = streamPos + skipped
+end
+
+local function seekBackward(seconds)
+    if not response or not playing then return end
+    stopAll()
+    local bytesToSkip = seconds * 6000
+    local targetPos = math.max(0, streamPos - bytesToSkip)
+    
+    pcall(function() response.close() end)
+    response = fetchStream(songs[selected].url)
+    
+    if not response then
+        playing = false
+        currentSong = "Seek failed"
+        draw()
+        return
+    end
+
+    decoder = dfpwm.make_decoder()
+    local skipped = 0
+    while skipped < targetPos do
+        local toRead = math.min(16384, targetPos - skipped)
+        local chunk = response.read(toRead)
+        if not chunk then break end
+        skipped = skipped + #chunk
+    end
+    streamPos = skipped
+end
+
 -- ========== DRAW ==========
- 
 local function draw()
- 
     local w, h = term.getSize()
- 
     term.setBackgroundColor(colors.black)
     term.clear()
- 
-    centerWrite(
-        "=== STREAMING MUSIC PLAYER ===",
-        1,
-        colors.yellow
-    )
- 
-    local listHeight = h - 9
- 
-    local maxScroll = math.max(
-        0,
-        #songs - listHeight
-    )
- 
-    scroll = math.max(
-        0,
-        math.min(scroll, maxScroll)
-    )
- 
+
+    centerWrite("=== STREAMING MUSIC PLAYER ===", 1, colors.yellow)
+    centerWrite(string.format("Speakers Connected: %d", #speakers), 2, colors.gray)
+
+    local listHeight = h - 10
+    local maxScroll = math.max(0, #songs - listHeight)
+    scroll = math.max(0, math.min(scroll, maxScroll))
+
     for i = 1, listHeight do
- 
         local idx = i + scroll
         local y = 2 + i
- 
         if songs[idx] then
- 
             if idx == selected then
- 
                 term.setBackgroundColor(colors.blue)
                 term.setTextColor(colors.white)
- 
             else
- 
                 term.setBackgroundColor(colors.black)
                 term.setTextColor(colors.lime)
- 
             end
- 
             term.setCursorPos(2, y)
             term.write(string.rep(" ", w - 2))
- 
             term.setCursorPos(3, y)
- 
             local name = songs[idx].name
- 
             if #name > w - 4 then
                 name = name:sub(1, w - 7) .. "..."
             end
- 
             term.write(name)
         end
     end
- 
+
     term.setBackgroundColor(colors.black)
- 
-    centerWrite(
-        "------------------------------",
-        h - 5,
-        colors.gray
-    )
- 
+    centerWrite("------------------------------", h - 5, colors.gray)
+
     if playing and currentSong then
- 
-        centerWrite(
-            "Now Playing: " .. currentSong,
-            h - 4,
-            colors.lightBlue
-        )
- 
+        centerWrite("Now Playing: " .. currentSong, h - 4, colors.lightBlue)
         if paused then
- 
-            centerWrite(
-                "[ PAUSED ]",
-                h - 3,
-                colors.orange
-            )
- 
+            centerWrite("[ PAUSED ]", h - 3, colors.orange)
         else
- 
-            centerWrite(
-                "[ PLAYING ]",
-                h - 3,
-                colors.lime
-            )
- 
+            centerWrite("[ PLAYING ]", h - 3, colors.lime)
         end
- 
     else
- 
-        centerWrite(
-            "Now Playing: Nothing",
-            h - 4,
-            colors.gray
-        )
- 
+        centerWrite("Now Playing: Nothing", h - 4, colors.gray)
     end
- 
-    centerWrite(
-        string.format("Volume: %.1fx", volume),
-        h - 1,
-        colors.yellow
-    )
- 
-    drawButton(2, h, 8, "Play", colors.green)
-    drawButton(11, h, 8, "Pause", colors.orange)
-    drawButton(20, h, 8, "Stop", colors.red)
-    drawButton(29, h, 7, "Vol-", colors.brown)
-    drawButton(37, h, 7, "Vol+", colors.brown)
+
+    -- Row h-1: Volume bar
+    drawButton(2, h - 1, 6, "Vol-", colors.brown)
+    centerWrite(string.format("Volume: %.1fx", volume), h - 1, colors.yellow)
+    drawButton(w - 7, h - 1, 6, "Vol+", colors.brown)
+
+    -- Row h: Playback Controls: [-15s] [<] [|| / >] [>] [+15s] [Stop]
+    local playPauseText = (playing and not paused) and "||" or " > "
+    local playPauseBg = (playing and not paused) and colors.orange or colors.green
+
+    drawButton(2,  h, 5, "-15s", colors.gray)
+    drawButton(8,  h, 4, "<", colors.gray)
+    drawButton(13, h, 6, playPauseText, playPauseBg)
+    drawButton(20, h, 4, ">", colors.gray)
+    drawButton(25, h, 5, "+15s", colors.gray)
+    drawButton(31, h, 6, "Stop", colors.red)
 end
- 
+
 -- ========== HANDLE MONITOR INPUT ==========
- 
 local function handleTouch(x, y)
- 
     local w, h = term.getSize()
-    local listHeight = h - 9
- 
-    -- Select song
+    local listHeight = h - 10
+
+    -- Select song via list click
     if y >= 3 and y <= 2 + listHeight then
- 
         local idx = (y - 2) + scroll
- 
         if songs[idx] then
- 
             selected = idx
             draw()
- 
         end
     end
- 
-    -- PLAY
-    if y == h and x >= 2 and x <= 9 then
- 
-        if songs[selected] then
- 
+
+    -- VOLUME - BUTTON
+    if y == h - 1 and x >= 2 and x <= 7 then
+        volume = math.max(0.2, math.floor((volume - 0.2) * 10 + 0.5) / 10)
+        draw()
+    end
+
+    -- VOLUME + BUTTON
+    if y == h - 1 and x >= w - 7 and x <= w - 2 then
+        volume = math.min(3.0, math.floor((volume + 0.2) * 10 + 0.5) / 10)
+        draw()
+    end
+
+    -- REWIND 15 SECONDS (-15s)
+    if y == h and x >= 2 and x <= 6 then
+        seekBackward(15)
+        draw()
+    end
+
+    -- PREVIOUS TRACK BUTTON (<)
+    if y == h and x >= 8 and x <= 11 then
+        selected = selected - 1
+        if selected < 1 then selected = #songs end
+        if songs[selected] then startStream(songs[selected]) end
+    end
+
+    -- PLAY / PAUSE TOGGLE
+    if y == h and x >= 13 and x <= 18 then
+        if not playing and songs[selected] then
             startStream(songs[selected])
- 
-        end
-    end
- 
-    -- PAUSE
-    if y == h and x >= 11 and x <= 18 then
- 
-        if playing then
- 
+        elseif playing then
             paused = not paused
- 
             draw()
- 
         end
     end
- 
-    -- STOP
-    if y == h and x >= 20 and x <= 27 then
- 
+
+    -- NEXT TRACK BUTTON (>)
+    if y == h and x >= 20 and x <= 23 then
+        selected = selected + 1
+        if selected > #songs then selected = 1 end
+        if songs[selected] then startStream(songs[selected]) end
+    end
+
+    -- FAST FORWARD 15 SECONDS (+15s)
+    if y == h and x >= 25 and x <= 29 then
+        seekForward(15)
+        draw()
+    end
+
+    -- STOP BUTTON
+    if y == h and x >= 31 and x <= 36 then
         stopFlag = true
- 
-        speaker.stop()
- 
+        stopAll()
         if response then
- 
-            pcall(function()
-                response.close()
-            end)
- 
+            pcall(function() response.close() end)
             response = nil
         end
- 
         playing = false
         paused = false
         currentSong = nil
- 
-        draw()
-    end
- 
-    -- VOLUME -
-    if y == h and x >= 29 and x <= 35 then
- 
-        volume = math.max(
-            0.2,
-            math.floor(
-                (volume - 0.2) * 10 + 0.5
-            ) / 10
-        )
- 
-        draw()
-    end
- 
-    -- VOLUME +
-    if y == h and x >= 37 and x <= 43 then
- 
-        volume = math.min(
-            3.0,
-            math.floor(
-                (volume + 0.2) * 10 + 0.5
-            ) / 10
-        )
- 
+        streamPos = 0
         draw()
     end
 end
- 
+
 -- ========== START STREAM ==========
- 
 function startStream(song)
- 
-    -- Stop previous song
     stopFlag = true
- 
-    speaker.stop()
- 
+    stopAll()
     if response then
- 
-        pcall(function()
-            response.close()
-        end)
- 
+        pcall(function() response.close() end)
         response = nil
     end
- 
     sleep(0.2)
- 
-    -- Reset playback state
+
     stopFlag = false
     paused = false
     playing = true
     currentSong = song.name
- 
-    -- IMPORTANT:
-    -- New decoder for every song
+    streamPos = 0
     decoder = dfpwm.make_decoder()
- 
     draw()
- 
-    -- Request the file
-    http.request({
-        url = song.url,
-        binary = true
-    })
- 
-    local timeout = os.startTimer(20)
- 
-    while true do
- 
-        local ev, p1, p2, p3 = os.pullEvent()
- 
-        if ev == "http_success" and p1 == song.url then
- 
-            response = p2
- 
-            break
- 
-        elseif ev == "http_failure" and p1 == song.url then
- 
-            playing = false
-            currentSong = "Load failed"
- 
-            draw()
- 
-            return
- 
-        elseif ev == "timer" and p1 == timeout then
- 
-            playing = false
-            currentSong = "Timeout"
- 
-            draw()
- 
-            return
- 
-        elseif ev == "monitor_touch" then
- 
-            -- Ignore button input while loading
-            -- so the HTTP request cannot be interrupted
- 
-        end
+
+    response = fetchStream(song.url)
+    if not response then
+        playing = false
+        currentSong = "Load failed"
+        draw()
     end
 end
- 
+
 -- ========== MAIN LOOP ==========
- 
 draw()
- 
 while true do
- 
-    --------------------------------------------------
-    -- PLAYBACK
-    --------------------------------------------------
- 
     if playing and not paused and response and not stopFlag then
- 
-        -- Read one 16 KiB DFPWM chunk
         local chunk = response.read(16 * 1024)
- 
         if chunk then
- 
-            -- Decode the chunk
+            streamPos = streamPos + #chunk
             local buffer = decoder(chunk)
- 
-            -- Apply volume
             buffer = applyVolume(buffer)
- 
-            -- IMPORTANT:
-            -- Do NOT discard this buffer if the speaker
-            -- is currently full.
-            --
-            -- Keep retrying the SAME buffer until it
-            -- has actually been accepted.
+
             local submitted = false
- 
             while not submitted do
- 
-                -- If the user stopped the song, abandon it
-                if stopFlag or not playing then
-                    break
-                end
- 
-                -- If paused, wait for resume
+                if stopFlag or not playing then break end
+
                 if paused then
- 
-                    local event, p1, p2, p3 =
-                        os.pullEvent()
- 
+                    local event, p1, p2, p3 = os.pullEvent()
                     if event == "monitor_touch" then
- 
                         handleTouch(p2, p3)
- 
                     elseif event == "mouse_scroll" then
- 
                         scroll = scroll - p1
                         draw()
- 
                     end
- 
                 else
- 
-                    -- Try to submit the audio
-                    submitted = speaker.playAudio(buffer)
- 
+                    submitted = playAudioOnAll(buffer)
                     if not submitted then
- 
-                        -- Speaker buffer is full.
-                        --
-                        -- WAIT for it to empty.
-                        --
-                        -- Crucially, we do NOT move to
-                        -- another audio chunk here.
- 
-                        local event, p1, p2, p3 =
-                            os.pullEvent()
- 
+                        local event, p1, p2, p3 = os.pullEvent()
                         if event == "speaker_audio_empty" then
- 
-                            -- Loop around and try the
-                            -- EXACT SAME buffer again.
- 
+                            -- Audio buffer clear, retry broadcast
                         elseif event == "monitor_touch" then
- 
                             handleTouch(p2, p3)
- 
                         elseif event == "mouse_scroll" then
- 
                             scroll = scroll - p1
                             draw()
- 
                         end
                     end
                 end
             end
- 
         else
- 
-            --------------------------------------------------
-            -- END OF SONG
-            --------------------------------------------------
- 
-            pcall(function()
-                response.close()
-            end)
- 
+            -- END OF SONG: Auto-advance to next track
+            pcall(function() response.close() end)
             response = nil
- 
-            speaker.stop()
- 
-            playing = false
-            paused = false
-            currentSong = nil
- 
-            draw()
- 
+            stopAll()
+            
+            selected = selected + 1
+            if selected > #songs then selected = 1 end
+            if songs[selected] then
+                startStream(songs[selected])
+            else
+                playing = false
+                paused = false
+                currentSong = nil
+                streamPos = 0
+                draw()
+            end
         end
- 
     else
- 
-        --------------------------------------------------
-        -- NOT CURRENTLY STREAMING
-        --------------------------------------------------
- 
-        local event, p1, p2, p3 =
-            os.pullEvent()
- 
+        local event, p1, p2, p3 = os.pullEvent()
         if event == "monitor_touch" then
- 
             handleTouch(p2, p3)
- 
         elseif event == "mouse_scroll" then
- 
             scroll = scroll - p1
- 
             draw()
- 
         end
     end
 end
